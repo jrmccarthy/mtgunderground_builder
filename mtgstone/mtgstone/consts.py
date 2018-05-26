@@ -1,4 +1,4 @@
-from __future__ import absolute_import, print_function
+from __future__ import print_function
 
 """
 This file holds all the various consts. Since we don't have a database, we
@@ -80,21 +80,21 @@ COLOR_QUERIES = {
 # For now, all the weights are 1; tuning this will probably suck a lot, but whatever.
 QUERIES = {
     "Old School 93-94": {
-        "1 or 2 Cost Creatures": {"query":"t:creature (cmc=1 or cmc=2) (%(colors)s or c=c)", "weight": 1},
-        "3 Cost Creatures": {"query":"t:creature cmc=3 (%(colors)s or c=c)", "weight": 1},
-        "4 Cost Creatures": {"query":"t:creature cmc=4 (%(colors)s or c=c)", "weight": 1},
-        "5 Cost Creatures": {"query":"t:creature cmc=5 (%(colors)s or c=c)", "weight": 1},
+        "1 or 2 Cost Creatures": {"query":"t:creature (cmc=1 or cmc=2) (%(colors)s or c=c)", "weight": 5},
+        "3 Cost Creatures": {"query":"t:creature cmc=3 (%(colors)s or c=c)", "weight": 5},
+        "4 Cost Creatures": {"query":"t:creature cmc=4 (%(colors)s or c=c)", "weight": 4},
+        "5 Cost Creatures": {"query":"t:creature cmc=5 (%(colors)s or c=c)", "weight": 3},
         "6+ Cost Creatures": {"query":"t:creature cmc>=6 (%(colors)s or c=c)", "weight": 1},
         "Auras": {"query":"t:aura (%(colors)s or c=c)", "weight": 1},
         "Enchantments": {"query":"t:enchantment (%(colors)s or c=c)", "weight": 1},
-        "Artifacts": {"query":"t:artifact -t:creature", "weight": 1},
-        "Sorceries": {"query":"t:sorcery (%(colors)s or c=c)", "weight": 1},
-        "Instants": {"query":"t:instant (%(colors)s or c=c)", "weight": 1},
-        "Nonbasic Lands": {"query":"t:land -t:basic not:dual", "weight": 1},
+        "Artifacts": {"query":"t:artifact -t:creature", "weight": 2},
+        "Sorceries": {"query":"t:sorcery (%(colors)s or c=c)", "weight": 2},
+        "Instants": {"query":"t:instant (%(colors)s or c=c)", "weight": 2},
+        "Nonbasic Lands": {"query":"t:land -t:basic not:dual", "weight": 2},
         # TODO: Clean this up to only provide mana of the correct colors (from lands); all colors ok from spells.
-        "Mana Acceleration": {"query":"(t:land -t:basic o:/add {(W|U|B|R|G|C)}{(W|U|B|R|G|C)}/) or (-t:land o:/add {(W|U|B|R|G|C)}/ (%(colors)s or c=c))", "weight": 1},
-        "Legends": {"query":"t:legend (%(colors)s or c=c)", "weight": 1},
-        # "2 Cost Creatures": "t:creature cmc=2 (%(colors)s or c=c)",
+        "Mana Acceleration": {"query":"(t:land -t:basic o:/add {(W|U|B|R|G|C)}{(W|U|B|R|G|C)}/) or \
+            (-t:land o:/add {(W|U|B|R|G|C)}/ (%(colors)s or c=c))", "weight": 2},
+        "Legends": {"query":"t:legend (%(colors)s or c=c)", "weight": 0},
         # "Removal": "", # Not sure how to query this one yet.
     }
 } 

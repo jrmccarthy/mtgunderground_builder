@@ -1,12 +1,17 @@
-# from __future__ import absolute_import, print_function
+from __future__ import print_function
 import consts
 import requests
+import random
 
 """
 This is where I store various conversion tools, as there's a lot of conversions
 since this app doesnt have a database and relies heavily on b64 encodings
 of current user data
 """
+
+###################
+# Tools for dealing with the deck data blob that gets passed back and forth on requests
+###################
 
 def encoded_deck_info_to_deck_info(encoded_blob):
     """
@@ -29,6 +34,10 @@ def encoded_to_dict(encoded_blob):
     """Get an encoded blob, return a nice python dict of deck_info"""
     # TODO: This probably needs some error checking?
     return deck_info_to_dict(ncoded_deck_info_to_deck_info(encoded_blob))
+
+#################
+# Tools for dealing with scryfall / whatever we use to source cards
+#################
 
 def scryfall_query_builder(deck_colors, query_type, deck_format):
     """
@@ -84,3 +93,25 @@ def trim_query_result(query_result):
         final.append(card_dict)
 
     return final
+
+
+####################
+# Tools to select which card class to query and pick
+####################
+
+def collect_queries_by_weight(deck_format):
+    """
+    Based on weights, generate a list of queries to randomly choose from.
+    """
+    result = []
+    for query_name, details in consts.QUERIES[deck_format].items():
+        this_query = [query_name] * details.get('weight', 0)
+        result += this_query
+
+    return result
+
+def pick_next_card_query(deck_format):
+    """
+    Pick a random query to use for the next card choice
+    """
+    return random.choice(collect_queries_by_weight(deck_format))

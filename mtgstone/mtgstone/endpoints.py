@@ -1,11 +1,11 @@
-from __future__ import absolute_import, print_function
+from __future__ import print_function
 
 import random
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from . import consts
-from . import tools
+import consts
+import tools
 
 
 class IndexView(APIView):
@@ -53,4 +53,5 @@ class QueryTestView(APIView):
         final_query = tools.scryfall_query_builder(color, chosen_query, format_)
         query_result = tools.trim_query_result(tools.query_scryfall(final_query))
 
-        return Response({'format': format_, 'num': len(query_result), 'color': color, 'chosen_query': chosen_query, 'query_result': query_result})
+        return Response({'format': format_, 'num': len(query_result), 'color': color, 
+            'chosen_query': chosen_query, 'query_result': query_result})

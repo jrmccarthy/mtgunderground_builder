@@ -13,10 +13,10 @@ Including another URLconf
     1. Import the include() function: from django.conf.urls import url, include
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
-from __future__ import absolute_import, print_function
+from __future__ import print_function
 from django.conf.urls import url
 from django.contrib import admin
-from . import endpoints
+import endpoints
 
 # TODO: Build Regex fo the various URLs here to make real urlconf
 urlpatterns = [
