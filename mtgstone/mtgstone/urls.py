@@ -24,4 +24,5 @@ urlpatterns = [
     url(r'^index/', endpoints.IndexView.as_view()),
     url(r'^deck/(?P<deck_blob>[0-9a-zA-Z]*)', endpoints.DeckView.as_view()),
     url(r'^builder/(?P<deck_blob>[0-9a-zA-Z]*)', endpoints.BuilderView.as_view()),
+    url(r'^query_test/', endpoints.QueryTestView.as_view()),
 ]

@@ -1,4 +1,4 @@
-from __future__ import absolute_import, print_function
+# from __future__ import absolute_import, print_function
 import consts
 import requests
 
@@ -35,8 +35,8 @@ def scryfall_query_builder(deck_colors, query_type, deck_format):
     Build the query argument that we're gonna send to Scryfall to get our list of cards.
     """
     base_query = consts.BASE_QUERIES[deck_format]
-    color_mixin = consts.COLOR_MIXINS[deck_colors]
-    query_params = consts.QUERIES[deck_format][query_type]['query'] % {'colors': color_mixin}
+    color_query = consts.COLOR_QUERIES[deck_colors]
+    query_params = consts.QUERIES[deck_format][query_type]['query'] % {'colors': color_query}
 
     full_query = ' '.join([base_query, query_params])
 
@@ -67,3 +67,20 @@ def query_scryfall(query_param):
 
     return result.json()
 
+def trim_query_result(query_result):
+    """
+    Scryfall returns an insane amount of data about each card. Frankly, we don't care about 98% of it. Trim this down
+    to the stuff that really matters
+    """
+    good_stuff = ['id', 'oracle_id', 'name', 'cmc', 'colors', 'set', 'usd', 'image_uris']
+
+    # UGHHHH I hate this, but I don't feel like refactoring into map or comprehensions right now.
+    final = []
+    for card in query_result['data']:
+        card_dict = {}
+        for k, v in card.items():
+            if k in good_stuff:
+                card_dict[k] = v
+        final.append(card_dict)
+
+    return final

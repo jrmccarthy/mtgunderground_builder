@@ -1,7 +1,11 @@
 from __future__ import absolute_import, print_function
 
+import random
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from . import consts
+from . import tools
 
 
 class IndexView(APIView):
@@ -35,3 +39,18 @@ class BuilderView(APIView):
         # TODO: Figure out the card_choice from the POST
         card_choice = ""
         return Response({"hi": "hi", "blob": deck_blob, "choice": card_choice})
+
+class QueryTestView(APIView):
+    """
+    Just an endpoint for testing out the query builder. Grab a random format/category/color, build
+    a query, and return the results.
+    """
+    def get(self, request, format=None):
+        format_ = random.choice(consts.FORMATS)
+        color = random.choice(consts.COLOR_QUERIES.items())[0]
+        chosen_query = random.choice(consts.QUERIES[format_].items())[0]
+
+        final_query = tools.scryfall_query_builder(color, chosen_query, format_)
+        query_result = tools.trim_query_result(tools.query_scryfall(final_query))
+
+        return Response({'format': format_, 'num': len(query_result), 'color': color, 'chosen_query': chosen_query, 'query_result': query_result})

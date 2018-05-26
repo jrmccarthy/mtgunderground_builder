@@ -56,7 +56,7 @@ BASE_QUERIES = {
     "Old School 93-94": "year<=1994 unique:cards not:reprint",
 }
 
-COLOR_MIXINS = {
+COLOR_QUERIES = {
     "white": "c=w",
     "blue": "c=u",
     "black": "c=b",
@@ -87,10 +87,10 @@ QUERIES = {
         "6+ Cost Creatures": {"query":"t:creature cmc>=6 (%(colors)s or c=c)", "weight": 1},
         "Auras": {"query":"t:aura (%(colors)s or c=c)", "weight": 1},
         "Enchantments": {"query":"t:enchantment (%(colors)s or c=c)", "weight": 1},
-        "Artifacts": {"query":"t:artifact", "weight": 1},
+        "Artifacts": {"query":"t:artifact -t:creature", "weight": 1},
         "Sorceries": {"query":"t:sorcery (%(colors)s or c=c)", "weight": 1},
         "Instants": {"query":"t:instant (%(colors)s or c=c)", "weight": 1},
-        "Nonbasic Lands": {"query":"t:land -t:basic", "weight": 1},
+        "Nonbasic Lands": {"query":"t:land -t:basic not:dual", "weight": 1},
         # TODO: Clean this up to only provide mana of the correct colors (from lands); all colors ok from spells.
         "Mana Acceleration": {"query":"(t:land -t:basic o:/add {(W|U|B|R|G|C)}{(W|U|B|R|G|C)}/) or (-t:land o:/add {(W|U|B|R|G|C)}/ (%(colors)s or c=c))", "weight": 1},
         "Legends": {"query":"t:legend (%(colors)s or c=c)", "weight": 1},
