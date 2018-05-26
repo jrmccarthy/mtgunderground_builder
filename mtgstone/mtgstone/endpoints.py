@@ -47,7 +47,7 @@ class DeckView(APIView):
         # Grab the info we need from the post data; if not JSON or not there, error
         post_data = request.data
         if 'colors' not in post_data or 'format' not in post_data:
-            raise APIException('Must include both color and format')
+            raise APIException('Must include both "colors" and "format" in POST data')
 
         # Generate an empty deck (tools) with the chosen data. Error if its crap etc.
         new_deck = tools.gen_empty_deck(post_data['format'], post_data['colors'])
@@ -57,7 +57,13 @@ class DeckView(APIView):
         next_selection = tools.next_card_selection(new_deck)
 
         # Collect up all that data and return it to the user for their perusal.
-        return Response({'deck_blob': deck_blob, 'next_selection': next_selection, 'debug': {'deck': new_deck}})
+        return Response({
+            'deck_blob': deck_blob, 
+            'next_selection': next_selection, 
+            'complete': False,
+            'post_to': '/builder/',
+            'debug': {'deck': new_deck},
+        })
 
 
 class BuilderView(APIView):
@@ -68,7 +74,7 @@ class BuilderView(APIView):
     figures out the next question, and presents it. Ideally this will always present
     the same options for the same RNGSeed, but it might not for a while.
     """
-    def post(self, request, deck_blob=None, format=None):
+    def post(self, request, format=None):
         """
         This endpoint handles the actual deckbuilding stuff. It validates the posted deck blob,
         validates the posted card choice, then adds the card to the deck and updates the blob.
@@ -77,8 +83,24 @@ class BuilderView(APIView):
         If its done, it returns that info to the front end to handle. If not, it returns an updated
         deck blob along with a new card choice, and the whole process repeats.
         """
+        post_data = request.data
+        if 'deck_blob' not in post_data or 'next_selection' not in post_data:
+            raise APIException('Must include "deck_blob" and "next_selection" in POST data')
+        
+        # Validate the existing deck blob
+        deck_data = tools.encoded_string_to_usable_deck(post_data['deck_blob'])
+
+        # Validate the selection
+        selection = post_data['next_selection']
+        tools.validate_selection(selection)
+
+        # Add the selection to the deck
+        # Figure out if we are done (count how many total cards in deck)
+        # If so, return info indicating we are done!
+        # Else, grab the next selection and return
+
         card_choice = ""
-        return Response({"hi": "hi", "blob": deck_blob, "choice": card_choice})
+        return Response({"hi": "hi", "choice": card_choice})
 
 class QueryTestView(APIView):
     """

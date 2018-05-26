@@ -65,6 +65,23 @@ DECK_SCHEMA = {
     "additionalProperties": False,
 }
 
+SELECTION_SCHEMA = {
+    "$schema": "http://json-schema.org/draft-06/schema#",
+    "description": "This object describes a card selection.",
+    "type": "object",
+    "properties": {
+        "name": {},
+        "usd": {},
+        "cmc": {},
+        "image_uris": {},
+        "colors": {},
+        "set": {},
+    },
+    "required": [
+
+    ],
+}
+
 # TODO: Remove this / move it to real tests later; temp tester for my schema
 TESTER = {
     "format": "Old School 93-94",

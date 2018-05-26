@@ -115,7 +115,7 @@ def trim_query_result(query_result):
     Scryfall returns an insane amount of data about each card. Frankly, we don't care about 98% of it. Trim this down
     to the stuff that really matters
     """
-    good_stuff = ['id', 'oracle_id', 'name', 'cmc', 'colors', 'set', 'usd', 'image_uris']
+    good_stuff = ['name', 'cmc', 'colors', 'set', 'usd', 'image_uris']
 
     # UGHHHH I hate this, but I don't feel like refactoring into map or comprehensions right now.
     final = []
@@ -221,6 +221,20 @@ def add_card_to_deck(deck, card_info, quantity):
     """
     Add the chosen card to the deck, and return the updated blob. Validate the selection too.
     """
+    validate_selection(card_info)
+    new_deck = copy.deepcopy(deck)
+    # TODO: Figure out what to do about >4 of a card in a nice way.
+    new_deck['cards'].append({
+        "name": card_info['name'],
+        "set": card_info['set'],
+        "usd": card_info['usd'],
+        "quantity": quantity,
+        "image_uri": card_info['image_uris']['png'],
+    })
+
+    jsonschema.validate(new_deck, deck_formatting.DECK_SCHEMA)
+
+    return new_deck
 
 def next_card_selection(deck):
     """
@@ -241,3 +255,5 @@ def next_card_selection(deck):
 
     return selections
 
+def validate_selection(selection):
+    jsonschema.validate(selection, deck_formatting.SELECTION_SCHEMA)
