@@ -3,6 +3,10 @@ from __future__ import print_function
 import jsonschema
 import consts
 
+"""
+The schema for how a Deck needs to look to work when it gets posted here (or returned to the user)
+"""
+
 DECK_SCHEMA = {
     "$schema": "http://json-schema.org/draft-06/schema#",
     "description": "This object describes an in-progress or finished deck.",

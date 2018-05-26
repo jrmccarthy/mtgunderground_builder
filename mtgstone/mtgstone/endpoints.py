@@ -34,7 +34,7 @@ class BuilderView(APIView):
     figures out the next question, and presents it. Ideally this will always present
     the same options for the same RNGSeed, but it might not for a while.
     """
-    def post(self, request, deck_blob, format=None):
+    def post(self, request, deck_blob=None, format=None):
         # TODO: All of this!
         # TODO: Figure out the card_choice from the POST
         card_choice = ""
