@@ -73,12 +73,12 @@ def usable_deck_to_encoded_string(usable_deck):
 # Tools for dealing with scryfall / whatever we use to source cards
 #################
 
-def scryfall_query_builder(deck_colors, query_type, deck_format):
+def scryfall_query_builder(colors, query_type, deck_format):
     """
     Build the query argument that we're gonna send to Scryfall to get our list of cards.
     """
     base_query = consts.BASE_QUERIES[deck_format]
-    color_query = consts.COLOR_QUERIES[deck_colors]
+    color_query = consts.COLOR_QUERIES[colors]
     query_params = consts.QUERIES[deck_format][query_type]['query'] % {'colors': color_query}
 
     full_query = ' '.join([base_query, query_params])
@@ -128,6 +128,14 @@ def trim_query_result(query_result):
 
     return final
 
+def compile_execute_and_trim_query(colors, query_type, deck_format):
+    """
+    Tie all the above together into an easier-to-use api
+    """
+    full_query = scryfall_query_builder(colors, query_type, deck_format)
+    cards = get_cards(full_query)
+    return trim_query_result(cards)
+
 
 ####################
 # Tools to select which card class to query and pick
@@ -153,15 +161,56 @@ def pick_next_card_query(deck_format, seed=None):
     return random.choice(collect_queries_by_weight(deck_format))
 
 ##################
+# Tools for generating a set of options for the user to pick from (e.g. the 3 cards they see)
+##################
+
+def generate_pickable_selections(trimmed_query_results, deck_format, current_deck, num_selections=3):
+    """
+    We probably have a big blob of JSON stuff here. Lets pick num_selections random items from
+    it, but we need to be careful not to allow banned cards.
+
+    # TODO: We should also deal with restricted cards, e.g. not present them for choice if they
+    are already in the deck...
+    """
+    # Lets shuffle the results first, so we only have to randomize once
+    random.shuffle(trimmed_query_results)
+    result = []
+    for item in trimmed_query_results:
+        if not check_banned(deck_format, item['name']):
+            if not check_restricted_allowed_in_deck(deck_format, current_deck, item['name']):
+                result.append(item)
+        # Once we have the right number of cards, we're done.
+        if len(result) >= num_selections:
+            break
+    # If somehow there aren't enough cards... crap. For now, just grin and bear it. Someone
+    # higher up the call stack can deal with this, maybe by asking for another query.
+    return result
+
+def check_banned(deck_format, card_name):
+    """Check if the card_name is on the banned list for the format"""
+    if card_name in consts.BANNINGS[deck_format]:
+        return True
+    return False
+
+def check_restricted_allowed_in_deck(deck_format, current_deck, card_name):
+    """
+    This isnt implemented yet but it will check if the card_name is (restricted AND in the deck already).
+    So that you don't end up with 2 sol rings for example.
+    """
+    # TODO: Do this
+    return False
+
+##################
 # Tools for actually manipulating the deck blob
 ##################
 
 def gen_empty_deck(deck_format, colors, seed=None):
     empty_deck = {
         "colors": colors,
-        "deck_format": deck_format,
+        "format": deck_format,
         "cards": [],
     }
+    print(empty_deck)
     if seed:
         empty_deck['seed'] = seed
     jsonschema.validate(empty_deck, deck_formatting.DECK_SCHEMA)
@@ -169,4 +218,26 @@ def gen_empty_deck(deck_format, colors, seed=None):
     return empty_deck
 
 def add_card_to_deck(deck, card_info, quantity):
-    pass
+    """
+    Add the chosen card to the deck, and return the updated blob. Validate the selection too.
+    """
+
+def next_card_selection(deck):
+    """
+    Given an existing deck, generate the next set of cards that should be presented to the user
+    for selection.
+    """
+    # First grab the colors and format
+    # Then generate the query, execute, and trim
+    # Then get the selections, and return them!
+    colors = deck['colors']
+    deck_format = deck['format']
+    seed = deck.get('seed')
+
+    query_type = pick_next_card_query(deck_format, seed)
+    trimmed_query_results = compile_execute_and_trim_query(colors, query_type, deck_format)
+    selections = generate_pickable_selections(trimmed_query_results, deck_format, deck)
+    print('QUERY: ', query_type, ' NUM RESULTS:', len(trimmed_query_results))
+
+    return selections
+

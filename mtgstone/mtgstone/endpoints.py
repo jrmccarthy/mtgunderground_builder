@@ -1,29 +1,63 @@
 from __future__ import print_function
 
 import random
-
+import json
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.exceptions import APIException
+
 import consts
 import tools
 
 
 class IndexView(APIView):
     """
-    Basic welcome page I guess? Not much here yet
+    Basic info about the app. List the options available to the user, necessary for deck creation.
     """
 
     def get(self, request, format=None):
-        return Response({"hi": "hi"})
+        return Response({'available_formats': [item for item in consts.FORMATS], 'available_colors': [item for item in consts.COLOR_QUERIES]})
 
 
 class DeckView(APIView):
     """
     Take in the associated deck encoded blob and render the deck page
     """
-    def get(self, request, deck_blob, format=None):
-        # TODO: All of this!
-        return Response({"hi": "hi", "blob": deck_blob})
+    def get(self, request, deck_blob=None, format=None):
+        """
+        Lets make finished decks shareable! Also for the frontend to easily to its thing. This
+        endpoint will simple decode a deck_blob and return the decoded stuff, for someone else
+        to handle displaying at some future date.
+        """
+        if deck_blob:
+            try:
+                result = tools.encoded_string_to_usable_deck(deck_blob)
+            except tools.InvalidDeckDataException as e:
+                raise APIException(e.message)
+        else:
+            result = ''
+        return Response({"deck": result})
+
+    def post(self, request, format=None):
+        """
+        This endpoint lets you start a new deckbuilding experience! Include, in your post data,
+        what color(s) you want, and your desired format. We'll return a JSON response with an ID
+        for your current deck, and a json blob describing your available card choices.
+        """
+        # Grab the info we need from the post data; if not JSON or not there, error
+        post_data = request.data
+        if 'colors' not in post_data or 'format' not in post_data:
+            raise APIException('Must include both color and format')
+
+        # Generate an empty deck (tools) with the chosen data. Error if its crap etc.
+        new_deck = tools.gen_empty_deck(post_data['format'], post_data['colors'])
+        deck_blob = tools.usable_deck_to_encoded_string(new_deck)
+
+        # Figure out the next query, run it, and pick a set of cards for the user to select from
+        next_selection = tools.next_card_selection(new_deck)
+
+        # Collect up all that data and return it to the user for their perusal.
+        return Response({'deck_blob': deck_blob, 'next_selection': next_selection, 'debug': {'deck': new_deck}})
 
 
 class BuilderView(APIView):
@@ -35,8 +69,14 @@ class BuilderView(APIView):
     the same options for the same RNGSeed, but it might not for a while.
     """
     def post(self, request, deck_blob=None, format=None):
-        # TODO: All of this!
-        # TODO: Figure out the card_choice from the POST
+        """
+        This endpoint handles the actual deckbuilding stuff. It validates the posted deck blob,
+        validates the posted card choice, then adds the card to the deck and updates the blob.
+        Then it figures out if the deck is done (based on number of cards), and adds lands if so.
+
+        If its done, it returns that info to the front end to handle. If not, it returns an updated
+        deck blob along with a new card choice, and the whole process repeats.
+        """
         card_choice = ""
         return Response({"hi": "hi", "blob": deck_blob, "choice": card_choice})
 
