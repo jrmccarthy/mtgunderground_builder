@@ -3,11 +3,11 @@ from __future__ import print_function
 import copy
 import json
 import jsonschema
+import math
 import random
 import requests
 
 import consts
-import deck_formatting
 
 """
 This is where I store various conversion tools, as there's a lot of conversions
@@ -43,7 +43,7 @@ def string_to_usable_deck(deck_string):
         raise InvalidDeckDataException("Deck data does not appear to be valid JSON")
 
     try:
-        jsonschema.validate(result, deck_formatting.DECK_SCHEMA)
+        jsonschema.validate(result, consts.DECK_SCHEMA)
     except Exception as e:
         # For now, reraise the original error, because it was useful and important context
         raise
@@ -58,7 +58,7 @@ def encoded_string_to_usable_deck(encoded_blob):
 def usable_deck_to_string(usable_deck):
     """Take a nice Python Dict formatted deck and turn it into a string
     """
-    # jsonschema.validate(usable_deck, deck_formatting.DECK_SCHEMA)
+    # jsonschema.validate(usable_deck, consts.DECK_SCHEMA)
     return json.dumps(usable_deck)
 
 def string_to_encoded_string(deck_string):
@@ -218,8 +218,8 @@ def gen_empty_deck(deck_format, colors, seed=None):
     print(empty_deck)
     if seed:
         empty_deck['seed'] = seed
-    jsonschema.validate(empty_deck, deck_formatting.DECK_SCHEMA)
-    
+    jsonschema.validate(empty_deck, consts.DECK_SCHEMA)
+
     return empty_deck
 
 def add_card_to_deck(deck, card_info, quantity, validate=True):
@@ -238,9 +238,30 @@ def add_card_to_deck(deck, card_info, quantity, validate=True):
     })
 
     if validate:
-        jsonschema.validate(new_deck, deck_formatting.DECK_SCHEMA)
+        jsonschema.validate(new_deck, consts.DECK_SCHEMA)
 
     return new_deck
+
+def add_lands(deck, lands_needed=24):
+    """
+    This is real simple for now. Add lands based on the deck color (24 total always for now).
+    Some day this could get fancier, like taking ratios into mind, and maybe looking at lands
+    already in the deck, but for now, just add basics (or 4 duals + 10 of each for 2colors).
+    """
+    deck_colors = deck['colors']
+    if len(deck_colors) == 1:
+        # mono color, this is easy
+        final_deck = add_card_to_deck(deck, consts.STATIC_LAND_SELECTIONS[deck_colors], quantity=lands_needed)
+    elif len(deck_colors) == 2:
+        with_duals = add_card_to_deck(deck, consts.STATIC_LAND_SELECTIONS[deck_colors], quantity=4)
+        # Just put in half and half of each (or close nough, if we need an odd number of lands total)
+        first_quant, second_quant = int(math.floor((lands_needed-4)/2.0)), int(math.ceil((lands_needed-4)/2.0))
+        first_color = add_card_to_deck(with_duals, consts.STATIC_LAND_SELECTIONS[deck_colors[0]], first_quant, validate=False)
+        final_deck = add_card_to_deck(first_color, consts.STATIC_LAND_SELECTIONS[deck_colors[1]], second_quant, validate=False)
+    else:
+        raise InvalidDeckDataException('Deck can only be one or two colors right now!')
+
+    return final_deck
 
 def next_card_selection(deck):
     """
@@ -267,4 +288,4 @@ def count_deck(deck):
 
 
 def validate_selection(selection):
-    jsonschema.validate(selection, deck_formatting.SELECTION_SCHEMA)
+    jsonschema.validate(selection, consts.SELECTION_SCHEMA)

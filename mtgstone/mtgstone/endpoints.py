@@ -62,8 +62,8 @@ class DeckView(APIView):
 
         # Collect up all that data and return it to the user for their perusal.
         return Response({
-            'deck_blob': deck_blob, 
-            'next_selection': next_selection, 
+            'deck_blob': deck_blob,
+            'next_selection': next_selection,
             'complete': False,
             'post_to': '/builder/',
             'debug': {'deck': new_deck},
@@ -90,7 +90,7 @@ class BuilderView(APIView):
         post_data = request.data
         if 'deck_blob' not in post_data or 'next_selection' not in post_data or 'quantity' not in post_data:
             raise APIException('Must include "deck_blob", "next_selection", and "quantity" in POST data')
-        
+
         # Validate the existing deck blob
         deck_data = tools.encoded_string_to_usable_deck(post_data['deck_blob'])
 
@@ -100,7 +100,7 @@ class BuilderView(APIView):
 
         # Add the selection to the deck
         new_deck = tools.add_card_to_deck(deck_data, selection, post_data['quantity'])
-        
+
         # Figure out if we are done (count how many total cards in deck)
         # TODO: This part
         deck_count = tools.count_deck(new_deck)
@@ -110,7 +110,7 @@ class BuilderView(APIView):
             deck_blob = tools.usable_deck_to_encoded_string(finished_deck)
 
             return Response({
-                    'deck_blob': deck_blob, 
+                    'deck_blob': deck_blob,
                     'complete': True,
                     'debug': {'deck': finished_deck},
                 })
@@ -119,14 +119,14 @@ class BuilderView(APIView):
 
         # If so, return info indicating we are done!
         # TODO: This too
-        
+
         # Else, grab the next selection and return
         deck_blob = tools.usable_deck_to_encoded_string(new_deck)
         next_selection = tools.next_card_selection(new_deck)
 
         return Response({
-            'deck_blob': deck_blob, 
-            'next_selection': next_selection, 
+            'deck_blob': deck_blob,
+            'next_selection': next_selection,
             'complete': False,
             'post_to': '/builder/',
             'debug': {'deck': new_deck},
@@ -145,5 +145,5 @@ class QueryTestView(APIView):
         final_query = tools.scryfall_query_builder(color, chosen_query, format_)
         query_result = tools.trim_query_result(tools.query_scryfall(final_query))
 
-        return Response({'format': format_, 'num': len(query_result), 'color': color, 
+        return Response({'format': format_, 'num': len(query_result), 'color': color,
             'chosen_query': chosen_query, 'query_result': query_result})

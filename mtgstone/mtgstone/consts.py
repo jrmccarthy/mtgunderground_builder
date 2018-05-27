@@ -1,5 +1,7 @@
 from __future__ import print_function
 
+import jsonschema
+
 """
 This file holds all the various consts. Since we don't have a database, we
 need to keep static data here, like what formats we support, what queries
@@ -99,7 +101,6 @@ QUERIES = {
     }
 }
 
-
 STATIC_LAND_SELECTIONS = {
     "w": {
         "name": "Plains",
@@ -142,33 +143,204 @@ STATIC_LAND_SELECTIONS = {
         "png": "https://img.scryfall.com/cards/png/en/lea/294.png?1525123083",
     },
     "wu": {
-
+        "name": "Tundra",
+        "png": "https://img.scryfall.com/cards/png/en/lea/284.png?1525124111",
+        "cmc": 0,
+        "colors": [],
+        "set": "lea",
+        "usd": "1895.00",
     },
     "wb": {
-
+        "name": "Scrubland",
+        "png": "https://img.scryfall.com/cards/png/en/lea/281.png?1525123958",
+        "cmc": 0,
+        "colors": [],
+        "set": "lea",
+        "usd": "1400.00",
     },
     "wr": {
-
+        "name": "Plateau",
+        "png": "https://img.scryfall.com/cards/png/en/lea/279.png?1525123713",
+        "cmc": 0,
+        "colors": [],
+        "set": "lea",
+        "usd": "1999.99",
     },
     "wg": {
-
+        "name": "Savannah",
+        "png": "https://img.scryfall.com/cards/png/en/lea/280.png?1525123950",
+        "cmc": 0,
+        "colors": [],
+        "set": "lea",
+        "usd": "1099.99",
     },
     "ub": {
-
+        "name": "Underground Sea",
+        "png": "https://img.scryfall.com/cards/png/en/lea/285.png?1525124130",
+        "cmc": 0,
+        "colors": [],
+        "set": "lea",
+        "usd": "8299.99",
     },
     "ur": {
-
+        "name": "Volcanic Island",
+        "png": "https://img.scryfall.com/cards/png/en/leb/287.png?1525124753",
+        "cmc": 0,
+        "colors": [],
+        "set": "leb",
+        "usd": "2984.00",
     },
     "ug": {
-
+        "name": "Tropical Island",
+        "png": "https://img.scryfall.com/cards/png/en/lea/283.png?1525124101",
+        "cmc": 0,
+        "colors": [],
+        "set": "lea",
+        "usd": "1045.00",
     },
     "br": {
-
+        "name": "Badlands",
+        "png": "https://img.scryfall.com/cards/png/en/lea/277.png?1525123061",
+        "cmc": 0,
+        "colors": [],
+        "set": "lea",
+        "usd": "1094.98",
     },
     "bg": {
-
+        "name": "Bayou",
+        "png": "https://img.scryfall.com/cards/png/en/lea/278.png?1525123078",
+        "cmc": 0,
+        "colors": [],
+        "set": "lea",
+        "usd": "0.01",
     },
     "rg": {
-
+        "name": "Taiga",
+        "png": "https://img.scryfall.com/cards/png/en/lea/282.png?1525124044",
+        "cmc": 0,
+        "colors": [],
+        "set": "lea",
+        "usd": "879.20",
     },
+}
+
+DECK_SCHEMA = {
+    "$schema": "http://json-schema.org/draft-06/schema#",
+    "description": "This object describes an in-progress or finished deck.",
+    "type": "object",
+    "properties": {
+        "format": {
+            "type": "string",
+            "enum": [item for item in FORMATS],
+        },
+        "cards": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                    },
+                    "quantity": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 4,
+                    },
+                    "set": {
+                        "type": "string",
+                        "maxLength": 4,
+                    },
+                    "png": {
+                        "type": "string",
+                        "format": "uri",
+                    },
+                    "usd": {
+                        "type": ["number", "string"],
+                    },
+                },
+                "required": [
+                    "name",
+                    "quantity",
+                    "set",
+                    "png"
+                ],
+                "additionalProperties": False
+            },
+        },
+        "seed": {
+            "type": "string"
+        },
+        "colors": {
+            "type": "string",
+            "enum": [item for item in COLOR_QUERIES],
+        },
+    },
+    "required": [
+        "cards",
+        "format",
+    ],
+    "additionalProperties": False,
+}
+
+SELECTION_SCHEMA = {
+    "$schema": "http://json-schema.org/draft-06/schema#",
+    "description": "This object describes a card selection.",
+    "type": "object",
+    "properties": {
+        "name": {
+            "type": "string",
+        },
+        "usd": {
+            "type": ["number", "string"],
+        },
+        "cmc": {
+            "type": "integer",
+        },
+        "png": {
+            "type": "string",
+            "format": "uri",
+        },
+        "colors": {
+            "type": "array",
+            "items": {
+                "type": "string",
+                "enum": ["W", "U", "B", "R", "G", "C"],
+            },
+        },
+        "set": {
+            "type": "string",
+        },
+        "max_can_add": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 4,
+        },
+    },
+    "required": [
+        "name", "usd", "cmc", "png", "colors", "set"
+    ],
+    "additionalProperties": False
+}
+
+
+# TODO: Remove this / move it to real tests later; temp tester for my schema
+TESTER = {
+    "format": "Old School 93-94",
+    "colors": "wu",
+    "cards": [
+        {
+            "name": "Swords to Plowshares",
+            "quantity": 4,
+            "set": "LEA",
+            "png": "https://www.example.com/swords",
+            "usd": 599.59
+        },
+        {
+            "name": "Serra Angel",
+            "quantity": 3,
+            "set": "LEB",
+            "png": "https://www.example.com/serra",
+            "usd": 23,
+        },
+    ],
 }
