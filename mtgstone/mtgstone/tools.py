@@ -24,7 +24,7 @@ class InvalidDeckDataException(Exception):
     pass
 
 
-def encoded_string_to_string(encoded_blob):
+def _encoded_string_to_string(encoded_blob):
     """
     Given a b64 encoded deck_info blob, return a string of it
     """
@@ -33,10 +33,8 @@ def encoded_string_to_string(encoded_blob):
     except Exception:
         raise InvalidDeckDataException("Cannot decode deck data into anything readable.")
 
-def string_to_usable_deck(deck_string):
-    """
-    Given a deck_string blob (a string), decode it into a dictionary
-    """
+def _string_to_usable_deck(deck_string):
+    """Given a deck_string blob (a string), decode it into a dictionary"""
     try:
         result = json.loads(deck_string)
     except Exception:
@@ -45,7 +43,7 @@ def string_to_usable_deck(deck_string):
     try:
         jsonschema.validate(result, consts.DECK_SCHEMA)
     except Exception as e:
-        # For now, reraise the original error, because it was useful and important context
+        # For now, reraise the original error, because it is useful and has important context
         raise
         # raise InvalidDeckDataException(e.message)
 
@@ -53,29 +51,28 @@ def string_to_usable_deck(deck_string):
 
 def encoded_string_to_usable_deck(encoded_blob):
     """Get an encoded blob, return a nice python dict of deck_info"""
-    return string_to_usable_deck(encoded_string_to_string(encoded_blob))
+    return _string_to_usable_deck(_encoded_string_to_string(encoded_blob))
 
-def usable_deck_to_string(usable_deck):
-    """Take a nice Python Dict formatted deck and turn it into a string
-    """
+def _usable_deck_to_string(usable_deck):
+    """Take a nice Python Dict formatted deck and turn it into a string"""
+    # TODO: Right now the validator doesnt work once you add >4 of a basic; once thats fixed
+    # this can be enabled again
     # jsonschema.validate(usable_deck, consts.DECK_SCHEMA)
     return json.dumps(usable_deck)
 
-def string_to_encoded_string(deck_string):
-    """
-    Take a string that hopefully is a json-dumped version of a usable deck and encode it
-    """
+def _string_to_encoded_string(deck_string):
+    """Take a string that hopefully is a json-dumped version of a usable deck and encode it"""
     return deck_string.encode("base64")
 
 def usable_deck_to_encoded_string(usable_deck):
     """Go from a usable Deck dict all the way to an encoded string"""
-    return string_to_encoded_string(usable_deck_to_string(usable_deck))
+    return _string_to_encoded_string(_usable_deck_to_string(usable_deck))
 
 #################
 # Tools for dealing with scryfall / whatever we use to source cards
 #################
 
-def scryfall_query_builder(colors, query_type, deck_format):
+def _scryfall_query_builder(colors, query_type, deck_format):
     """
     Build the query argument that we're gonna send to Scryfall to get our list of cards.
     """
@@ -95,9 +92,9 @@ def get_cards(query_param):
     If anyone actually uses this, adding caching should be really simple; just need a place to store the data.
     Scryfall doesnt really want unauthed accounts blasting their API (for good reason).
     """
-    return query_scryfall(query_param)
+    return _query_scryfall(query_param)
 
-def query_scryfall(query_param):
+def _query_scryfall(query_param):
     """
     Reach out to scryfall and get our card data.
     """
@@ -112,7 +109,7 @@ def query_scryfall(query_param):
 
     return result.json()
 
-def trim_query_result(query_result):
+def _trim_query_result(query_result):
     """
     Scryfall returns an insane amount of data about each card. Frankly, we don't care about 98% of it. Trim this down
     to the stuff that really matters
@@ -126,7 +123,9 @@ def trim_query_result(query_result):
         for k, v in card.items():
             if k in good_stuff:
                 card_dict[k] = v
-        card_dict['png'] = card['image_uris']['png']
+        card_dict['png'] = card['image_uris'].get('png')
+        if not card['image_uris'].get('png'):
+            raise IndexError('WTF: ', card['image_uris'], card['name'])
         final.append(card_dict)
 
     return final
@@ -135,9 +134,9 @@ def compile_execute_and_trim_query(colors, query_type, deck_format):
     """
     Tie all the above together into an easier-to-use api
     """
-    full_query = scryfall_query_builder(colors, query_type, deck_format)
+    full_query = _scryfall_query_builder(colors, query_type, deck_format)
     cards = get_cards(full_query)
-    return trim_query_result(cards)
+    return _trim_query_result(cards)
 
 
 ####################

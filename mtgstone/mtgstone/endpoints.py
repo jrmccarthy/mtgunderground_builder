@@ -102,7 +102,7 @@ class BuilderView(APIView):
         new_deck = tools.add_card_to_deck(deck_data, selection, post_data['quantity'])
 
         # Figure out if we are done (count how many total cards in deck)
-        # TODO: This part
+        # If so, return info indicating we are done!
         deck_count = tools.count_deck(new_deck)
         if deck_count >= MAX_DECK_SIZE:
             # Add lands (super basic for now)
@@ -114,11 +114,6 @@ class BuilderView(APIView):
                     'complete': True,
                     'debug': {'deck': finished_deck},
                 })
-
-        # print('\nCount: %s\n' % deck_count)
-
-        # If so, return info indicating we are done!
-        # TODO: This too
 
         # Else, grab the next selection and return
         deck_blob = tools.usable_deck_to_encoded_string(new_deck)
@@ -142,8 +137,7 @@ class QueryTestView(APIView):
         color = random.choice(consts.COLOR_QUERIES.items())[0]
         chosen_query = random.choice(consts.QUERIES[format_].items())[0]
 
-        final_query = tools.scryfall_query_builder(color, chosen_query, format_)
-        query_result = tools.trim_query_result(tools.query_scryfall(final_query))
+        query_result = compile_execute_and_trim_query(color, chosen_query, format_)
 
         return Response({'format': format_, 'num': len(query_result), 'color': color,
             'chosen_query': chosen_query, 'query_result': query_result})
