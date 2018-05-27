@@ -3,7 +3,7 @@ from __future__ import print_function
 """
 This file holds all the various consts. Since we don't have a database, we
 need to keep static data here, like what formats we support, what queries
-to use for various things on scryfall, 
+to use for various things on scryfall,
 """
 
 QUERY_URL = 'https://api.scryfall.com/cards/search'
@@ -57,11 +57,11 @@ BASE_QUERIES = {
 }
 
 COLOR_QUERIES = {
-    "white": "c=w",
-    "blue": "c=u",
-    "black": "c=b",
-    "red": "c=r",
-    "green": "c=g",
+    "w": "c=w",
+    "u": "c=u",
+    "b": "c=b",
+    "r": "c=r",
+    "g": "c=g",
     "wu": "(c=w or c=u or c=wu)",
     "wb": "(c=w or c=b or c=wb)",
     "wr": "(c=w or c=r or c=wr)",
@@ -97,4 +97,78 @@ QUERIES = {
         "Legends": {"query":"t:legend (%(colors)s or c=c)", "weight": 0},
         # "Removal": "", # Not sure how to query this one yet.
     }
-} 
+}
+
+
+STATIC_LAND_SELECTIONS = {
+    "w": {
+        "name": "Plains",
+        "usd": "0.01",
+        "cmc": 0,
+        "colors": [],
+        "set": "lea",
+        "png": "https://img.scryfall.com/cards/png/en/lea/286.png?1525123704",
+    },
+    "u": {
+        "name": "Island",
+        "usd": "0.01",
+        "cmc": 0,
+        "colors": [],
+        "set": "lea",
+        "png": "https://img.scryfall.com/cards/png/en/lea/288.png?1525123442",
+    },
+    "b": {
+        "name": "Swamp",
+        "usd": "0.01",
+        "cmc": 0,
+        "colors": [],
+        "set": "lea",
+        "png": "https://img.scryfall.com/cards/png/en/lea/290.png?1525124024",
+    },
+    "r": {
+        "name": "Mountain",
+        "usd": "0.01",
+        "cmc": 0,
+        "colors": [],
+        "set": "lea",
+        "png": "https://img.scryfall.com/cards/png/en/lea/292.png?1525123589",
+    },
+    "g": {
+        "name": "Forest",
+        "usd": "0.01",
+        "cmc": 0,
+        "colors": [],
+        "set": "lea",
+        "png": "https://img.scryfall.com/cards/png/en/lea/294.png?1525123083",
+    },
+    "wu": {
+
+    },
+    "wb": {
+
+    },
+    "wr": {
+
+    },
+    "wg": {
+
+    },
+    "ub": {
+
+    },
+    "ur": {
+
+    },
+    "ug": {
+
+    },
+    "br": {
+
+    },
+    "bg": {
+
+    },
+    "rg": {
+
+    },
+}

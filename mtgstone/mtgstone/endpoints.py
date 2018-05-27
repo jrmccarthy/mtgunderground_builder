@@ -1,13 +1,16 @@
 from __future__ import print_function
 
-import random
 import json
-from rest_framework.views import APIView
-from rest_framework.response import Response
+import random
 from rest_framework.exceptions import APIException
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 import consts
 import tools
+
+# TODO: Make this configurable at deck creation
+MAX_DECK_SIZE = 36 # Add 24 lands by default!
 
 
 class IndexView(APIView):
@@ -35,6 +38,7 @@ class DeckView(APIView):
             except tools.InvalidDeckDataException as e:
                 raise APIException(e.message)
         else:
+            # TODO: what do do here?
             result = ''
         return Response({"deck": result})
 
@@ -84,8 +88,8 @@ class BuilderView(APIView):
         deck blob along with a new card choice, and the whole process repeats.
         """
         post_data = request.data
-        if 'deck_blob' not in post_data or 'next_selection' not in post_data:
-            raise APIException('Must include "deck_blob" and "next_selection" in POST data')
+        if 'deck_blob' not in post_data or 'next_selection' not in post_data or 'quantity' not in post_data:
+            raise APIException('Must include "deck_blob", "next_selection", and "quantity" in POST data')
         
         # Validate the existing deck blob
         deck_data = tools.encoded_string_to_usable_deck(post_data['deck_blob'])
@@ -95,12 +99,38 @@ class BuilderView(APIView):
         tools.validate_selection(selection)
 
         # Add the selection to the deck
+        new_deck = tools.add_card_to_deck(deck_data, selection, post_data['quantity'])
+        
         # Figure out if we are done (count how many total cards in deck)
-        # If so, return info indicating we are done!
-        # Else, grab the next selection and return
+        # TODO: This part
+        deck_count = tools.count_deck(new_deck)
+        if deck_count >= MAX_DECK_SIZE:
+            # Add lands (super basic for now)
+            finished_deck = tools.add_lands(new_deck)
+            deck_blob = tools.usable_deck_to_encoded_string(finished_deck)
 
-        card_choice = ""
-        return Response({"hi": "hi", "choice": card_choice})
+            return Response({
+                    'deck_blob': deck_blob, 
+                    'complete': True,
+                    'debug': {'deck': finished_deck},
+                })
+
+        # print('\nCount: %s\n' % deck_count)
+
+        # If so, return info indicating we are done!
+        # TODO: This too
+        
+        # Else, grab the next selection and return
+        deck_blob = tools.usable_deck_to_encoded_string(new_deck)
+        next_selection = tools.next_card_selection(new_deck)
+
+        return Response({
+            'deck_blob': deck_blob, 
+            'next_selection': next_selection, 
+            'complete': False,
+            'post_to': '/builder/',
+            'debug': {'deck': new_deck},
+        })
 
 class QueryTestView(APIView):
     """

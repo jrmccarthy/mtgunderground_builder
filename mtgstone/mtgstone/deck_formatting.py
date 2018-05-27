@@ -33,19 +33,19 @@ DECK_SCHEMA = {
                         "type": "string",
                         "maxLength": 4,
                     },
-                    "image_uri": {
+                    "png": {
                         "type": "string",
                         "format": "uri",
                     },
                     "usd": {
-                        "type": "number",
+                        "type": ["number", "string"],
                     },
                 },
                 "required": [
                     "name",
                     "quantity",
                     "set",
-                    "image_uri"
+                    "png"
                 ],
                 "additionalProperties": False
             },
@@ -70,16 +70,82 @@ SELECTION_SCHEMA = {
     "description": "This object describes a card selection.",
     "type": "object",
     "properties": {
-        "name": {},
-        "usd": {},
-        "cmc": {},
-        "image_uris": {},
-        "colors": {},
-        "set": {},
+        "name": {
+            "type": "string",
+        },
+        "usd": {
+            "type": ["number", "string"],
+        },
+        "cmc": {
+            "type": "integer",
+        },
+        "png": {
+            "type": "string",
+            "format": "uri",
+        },
+        "colors": {
+            "type": "array",
+            "items": {
+                "type": "string",
+                "enum": ["W", "U", "B", "R", "G", "C"],
+            },
+        },
+        "set": {
+            "type": "string",
+        },
+        "max_can_add": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 4,
+        },
     },
     "required": [
-
+        "name", "usd", "cmc", "png", "colors", "set"
     ],
+    "additionalProperties": False
+}
+
+STATIC_LAND_SELECTIONS = {
+    "w": {
+        "name": "Plains",
+        "usd": "0.01",
+        "cmc": 0,
+        "colors": [],
+        "set": "lea",
+        "png": "https://img.scryfall.com/cards/png/en/lea/286.png?1525123704",
+    },
+    "u": {
+        "name": "Island",
+        "usd": "0.01",
+        "cmc": 0,
+        "colors": [],
+        "set": "lea",
+        "png": "https://img.scryfall.com/cards/png/en/lea/288.png?1525123442",
+    },
+    "b": {
+        "name": "Swamp",
+        "usd": "0.01",
+        "cmc": 0,
+        "colors": [],
+        "set": "lea",
+        "png": "https://img.scryfall.com/cards/png/en/lea/290.png?1525124024",
+    },
+    "r": {
+        "name": "Mountain",
+        "usd": "0.01",
+        "cmc": 0,
+        "colors": [],
+        "set": "lea",
+        "png": "https://img.scryfall.com/cards/png/en/lea/292.png?1525123589",
+    },
+    "g": {
+        "name": "Forest",
+        "usd": "0.01",
+        "cmc": 0,
+        "colors": [],
+        "set": "lea",
+        "png": "https://img.scryfall.com/cards/png/en/lea/294.png?1525123083",
+    },
 }
 
 # TODO: Remove this / move it to real tests later; temp tester for my schema
@@ -91,14 +157,14 @@ TESTER = {
             "name": "Swords to Plowshares",
             "quantity": 4,
             "set": "LEA",
-            "image_uri": "https://www.example.com/swords",
+            "png": "https://www.example.com/swords",
             "usd": 599.59
         },
         {
             "name": "Serra Angel",
             "quantity": 3,
             "set": "LEB",
-            "image_uri": "https://www.example.com/serra",
+            "png": "https://www.example.com/serra",
             "usd": 23,
         },
     ],

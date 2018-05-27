@@ -1,8 +1,10 @@
 from __future__ import print_function
-import requests
-import random
+
+import copy
 import json
 import jsonschema
+import random
+import requests
 
 import consts
 import deck_formatting
@@ -51,12 +53,12 @@ def string_to_usable_deck(deck_string):
 
 def encoded_string_to_usable_deck(encoded_blob):
     """Get an encoded blob, return a nice python dict of deck_info"""
-    return deck_info_to_dict(encoded_deck_info_to_deck_info(encoded_blob))
+    return string_to_usable_deck(encoded_string_to_string(encoded_blob))
 
 def usable_deck_to_string(usable_deck):
     """Take a nice Python Dict formatted deck and turn it into a string
     """
-    jsonschema.validate(usable_deck, deck_formatting.DECK_SCHEMA)
+    # jsonschema.validate(usable_deck, deck_formatting.DECK_SCHEMA)
     return json.dumps(usable_deck)
 
 def string_to_encoded_string(deck_string):
@@ -115,7 +117,7 @@ def trim_query_result(query_result):
     Scryfall returns an insane amount of data about each card. Frankly, we don't care about 98% of it. Trim this down
     to the stuff that really matters
     """
-    good_stuff = ['name', 'cmc', 'colors', 'set', 'usd', 'image_uris']
+    good_stuff = ['name', 'cmc', 'colors', 'set', 'usd']
 
     # UGHHHH I hate this, but I don't feel like refactoring into map or comprehensions right now.
     final = []
@@ -124,6 +126,7 @@ def trim_query_result(query_result):
         for k, v in card.items():
             if k in good_stuff:
                 card_dict[k] = v
+        card_dict['png'] = card['image_uris']['png']
         final.append(card_dict)
 
     return final
@@ -178,6 +181,8 @@ def generate_pickable_selections(trimmed_query_results, deck_format, current_dec
     for item in trimmed_query_results:
         if not check_banned(deck_format, item['name']):
             if not check_restricted_allowed_in_deck(deck_format, current_deck, item['name']):
+                # TODO: Calculate max_can_add based on current deck + restricted list
+                item['max_can_add'] = 4
                 result.append(item)
         # Once we have the right number of cards, we're done.
         if len(result) >= num_selections:
@@ -217,7 +222,7 @@ def gen_empty_deck(deck_format, colors, seed=None):
     
     return empty_deck
 
-def add_card_to_deck(deck, card_info, quantity):
+def add_card_to_deck(deck, card_info, quantity, validate=True):
     """
     Add the chosen card to the deck, and return the updated blob. Validate the selection too.
     """
@@ -229,10 +234,11 @@ def add_card_to_deck(deck, card_info, quantity):
         "set": card_info['set'],
         "usd": card_info['usd'],
         "quantity": quantity,
-        "image_uri": card_info['image_uris']['png'],
+        "png": card_info['png'],
     })
 
-    jsonschema.validate(new_deck, deck_formatting.DECK_SCHEMA)
+    if validate:
+        jsonschema.validate(new_deck, deck_formatting.DECK_SCHEMA)
 
     return new_deck
 
@@ -254,6 +260,11 @@ def next_card_selection(deck):
     print('QUERY: ', query_type, ' NUM RESULTS:', len(trimmed_query_results))
 
     return selections
+
+def count_deck(deck):
+    """Count how many cards in the deck (so we know when we're done)"""
+    return reduce(lambda x, y: x + y['quantity'], deck['cards'], 0)
+
 
 def validate_selection(selection):
     jsonschema.validate(selection, deck_formatting.SELECTION_SCHEMA)
