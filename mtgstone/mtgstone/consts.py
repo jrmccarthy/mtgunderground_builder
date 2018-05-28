@@ -278,6 +278,7 @@ DECK_SCHEMA = {
     "required": [
         "cards",
         "format",
+        "colors",
     ],
     "additionalProperties": False,
 }
@@ -317,7 +318,7 @@ SELECTION_SCHEMA = {
         },
     },
     "required": [
-        "name", "usd", "cmc", "png", "colors", "set"
+        "name", "usd", "png", "set"
     ],
     "additionalProperties": False
 }
