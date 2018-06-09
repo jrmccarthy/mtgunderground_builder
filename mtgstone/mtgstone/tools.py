@@ -24,6 +24,10 @@ class InvalidDeckDataException(Exception):
     pass
 
 
+class InvalidCardDateException(Exception):
+    pass
+
+
 def _encoded_string_to_string(encoded_blob):
     """
     Given a b64 encoded deck_info blob, return a string of it
@@ -217,7 +221,8 @@ def gen_empty_deck(deck_format, colors, seed=None):
     print(empty_deck)
     if seed:
         empty_deck['seed'] = seed
-    jsonschema.validate(empty_deck, consts.DECK_SCHEMA)
+    # jsonschema.validate(empty_deck, consts.DECK_SCHEMA)
+    validate_deck(empty_deck)
 
     return empty_deck
 
@@ -225,6 +230,8 @@ def add_card_to_deck(deck, card_info, quantity, validate=True):
     """
     Add the chosen card to the deck, and return the updated blob. Validate the selection too.
     """
+    if validate:
+        validate_deck(deck)
     validate_selection(card_info)
     new_deck = copy.deepcopy(deck)
     # TODO: Figure out what to do about >4 of a card in a nice way.
@@ -237,7 +244,7 @@ def add_card_to_deck(deck, card_info, quantity, validate=True):
     })
 
     if validate:
-        jsonschema.validate(new_deck, consts.DECK_SCHEMA)
+        validate_deck(new_deck)
 
     return new_deck
 
@@ -285,6 +292,14 @@ def count_deck(deck):
     """Count how many cards in the deck (so we know when we're done)"""
     return reduce(lambda x, y: x + y['quantity'], deck['cards'], 0)
 
+def validate_deck(deck, error='Deck does not appear to be valid'):
+    try:
+        jsonschema.validate(deck, consts.DECK_SCHEMA)
+    except Exception:
+        raise InvalidDeckDataException(error)
 
 def validate_selection(selection):
-    jsonschema.validate(selection, consts.SELECTION_SCHEMA)
+    try:
+        jsonschema.validate(selection, consts.SELECTION_SCHEMA)
+    except Exception as e:
+        raise InvalidCardDateException(e.message)
