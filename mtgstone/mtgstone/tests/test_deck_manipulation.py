@@ -4,6 +4,7 @@ from __future__ import print_function
 """
 Test out all the stuff that creates and messes with decklists
 """
+import copy
 import jsonschema
 import pytest
 
@@ -78,3 +79,40 @@ class TestDeckManipulation(object):
 
         with pytest.raises(tools.InvalidDeckDataException):
             new_deck = tools.add_card_to_deck(deck, card, quantity=12, validate=True)
+
+
+class TestAddLands(object):
+    """
+    Separate grouping of all our land-related stuff
+    """
+
+    def test_success_add_lands(self):
+        # Basic setup
+        deck = {'format': 'Old School 93-94', 'colors': 'w', 'cards': []}
+        quantity = 24
+        expected = {'format': 'Old School 93-94', 'colors': 'w', 'cards': [
+            {
+                'name': consts.STATIC_LAND_SELECTIONS['w']['name'],
+                'set': consts.STATIC_LAND_SELECTIONS['w']['set'],
+                'usd': consts.STATIC_LAND_SELECTIONS['w']['usd'],
+                'png': consts.STATIC_LAND_SELECTIONS['w']['png'],
+                'quantity': quantity,
+                'usd': consts.STATIC_LAND_SELECTIONS['w']['usd'],
+            }
+        ]}
+
+        # Higher number of lands
+        new_deck = tools.add_lands(deck)
+        assert new_deck == expected
+
+        higher_quant = tools.add_lands(deck, lands_needed=40)
+        update_expected = copy.deepcopy(expected)
+        update_expected['cards'][0]['quantity'] = 40
+
+        assert higher_quant == update_expected
+
+        # 2 colors (all combos ideally)
+        pass
+
+    def test_add_lands_bad_colors(self):
+        pass

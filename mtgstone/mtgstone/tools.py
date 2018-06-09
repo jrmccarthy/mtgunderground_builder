@@ -257,7 +257,7 @@ def add_lands(deck, lands_needed=24):
     deck_colors = deck['colors']
     if len(deck_colors) == 1:
         # mono color, this is easy
-        final_deck = add_card_to_deck(deck, consts.STATIC_LAND_SELECTIONS[deck_colors], quantity=lands_needed)
+        final_deck = add_card_to_deck(deck, consts.STATIC_LAND_SELECTIONS[deck_colors], quantity=lands_needed, validate=False)
     elif len(deck_colors) == 2:
         with_duals = add_card_to_deck(deck, consts.STATIC_LAND_SELECTIONS[deck_colors], quantity=4)
         # Just put in half and half of each (or close nough, if we need an odd number of lands total)
